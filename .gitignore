@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+client-react/node_modules/
+
+# Build output
+client-react/dist/
+dist/
+
+# Runtime data (uploads are local disk state, not source)
+uploads/
+logs/
+*.log
+coverage/
+
+# Secrets / local env (keep .env.example tracked)
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

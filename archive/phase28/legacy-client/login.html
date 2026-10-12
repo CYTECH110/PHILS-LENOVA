@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sign in | PHILS LEARNOVA</title><link rel="stylesheet" href="/css/styles.css"></head>
+<body><main class="landing"><p class="eyebrow">PHILS LEARNOVA</p><h1>Welcome back.</h1><form id="login-form" class="form-panel"><label>Username<input name="username" required autocomplete="username"></label><label>Password<input name="password" type="password" required autocomplete="current-password"></label><button type="submit">Sign in</button><p id="form-message" role="alert"></p></form></main><script src="/js/api.js"></script><script>
+document.querySelector('#login-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.currentTarget);
+  const message = document.querySelector('#form-message');
+  try {
+    const result = await LearnovaApi.apiRequest('/auth/login', { method: 'POST', body: JSON.stringify({ username: form.get('username'), password: form.get('password') }) });
+    const homes = { ADMIN: '/pages/admin/index.html', TEACHER: '/pages/teacher/index.html', STUDENT: '/pages/student/index.html' };
+    const home = homes[String(result.user && result.user.role || '').toUpperCase()];
+    if (!home) throw new Error('Account has an unknown role. Contact an administrator.');
+    window.location.replace(home);
+  } catch (error) { message.textContent = error.message; }
+});
+</script></body></html>

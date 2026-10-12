@@ -1,0 +1,30 @@
+const express = require('express');
+const controller = require('../controllers/admin.controller');
+const { requireAuth, requireRole } = require('../middleware/auth');
+const pagination = require('../middleware/pagination');
+
+const router = express.Router();
+router.use(requireAuth, requireRole('ADMIN'));
+router.get('/dashboard', controller.dashboard);
+router.get('/courses', pagination, controller.listCourses);
+router.post('/courses', controller.createCourse);
+router.put('/courses/:id', controller.updateCourse);
+router.delete('/courses/:id', controller.deleteCourse);
+router.get('/classes', pagination, controller.listClasses);
+router.post('/classes', controller.createClass);
+router.get('/classes/:id', controller.getClass);
+router.put('/classes/:id', controller.updateClass);
+router.get('/users', pagination, controller.listUsers);
+router.post('/users', controller.createUser);
+router.put('/users/:id', controller.updateUser);
+router.delete('/users/:id', controller.deleteUser);
+router.get('/allocations', controller.listAllocations);
+router.post('/allocations/students', controller.assignStudent);
+router.post('/allocations/teachers', controller.assignTeacher);
+router.post('/allocations/courses', controller.assignCourse);
+router.delete('/allocations/students/:studentId/classes/:classId', controller.unassignStudent);
+router.delete('/allocations/teachers/:teacherId/classes/:classId', controller.unassignTeacher);
+router.delete('/allocations/courses/:teacherId/courses/:courseId', controller.unassignCourse);
+router.get('/audit-logs', pagination, controller.auditLogs);
+
+module.exports = router;

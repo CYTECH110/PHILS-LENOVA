@@ -1,0 +1,8 @@
+node_modules
+package-lock.json
+archive
+coverage
+*.min.js
+*.md
+client-react/dist
+uploads

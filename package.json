@@ -1,0 +1,48 @@
+{
+  "name": "phils-learnova",
+  "version": "1.0.0",
+  "description": "PHILS LEARNOVA learning management system",
+  "private": true,
+  "scripts": {
+    "dev": "node --watch server/src/server.js",
+    "start": "node server/src/server.js",
+    "migrate": "node scripts/migrate.js",
+    "build": "npm --prefix client-react run build",
+    "client:install": "npm --prefix client-react install",
+    "client:dev": "npm --prefix client-react run dev",
+    "client:lint": "npm --prefix client-react run lint",
+    "test": "node --test server/tests/*.test.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "verify": "npm run lint && npm run client:lint && npm run build && npm test",
+    "format": "prettier --check .",
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write ."
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.4.0",
+    "mysql2": "^3.12.0",
+    "nodemailer": "^10.0.15",
+    "pdfkit": "^0.20.2",
+    "redis": "^6.3.0"
+  },
+  "main": "index.js",
+  "devDependencies": {
+    "eslint": "^10.11.0",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.9.9"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

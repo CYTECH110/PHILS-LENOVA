@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  server:
+    name: Server (lint + node:test)
+    runs-on: ubuntu-latest
+
+    # The suite boots the real Express app against a real database. Redis is
+    # optional: caching is bypassed gracefully when Redis is not reachable.
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: smartclass
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      NODE_ENV: test
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: smartclass
+      DB_USER: root
+      DB_PASSWORD: ''
+      JWT_SECRET: ci-only-secret-do-not-use-in-production
+      JWT_EXPIRES_IN: 8h
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install server dependencies
+        run: npm ci
+
+      - name: Load schema + development seed
+        run: |
+          mysql -h 127.0.0.1 -u root < database/schema.sql
+          mysql -h 127.0.0.1 -u root smartclass < database/seeders/001_development_seed.sql
+
+      - name: Lint (root)
+        run: npm run lint
+
+      - name: Test (node:test)
+        run: npm test
+
+  client:
+    name: Client (lint + build)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: client-react/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci --prefix client-react
+
+      - name: Lint (oxlint)
+        run: npm run client:lint
+
+      - name: Build (vite)
+        run: npm run build
