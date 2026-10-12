@@ -73,7 +73,7 @@ async function main() {
   const missing = await getJson('/api/does-not-exist');
   check('unknown API route -> 404 JSON envelope', missing.status === 404 && missing.body && missing.body.success === false, `status ${missing.status}`);
 
-  // ---- SPA is served from the build (app.js:46-51 fallback) ----
+  // ---- SPA is served from the build (app.js:58-79 fallback) ----
   res = await get('/');
   const contentType = res.headers.get('content-type') || '';
   check('GET / -> 200 text/html', res.status === 200 && contentType.includes('text/html'), `status ${res.status} (${contentType})`);

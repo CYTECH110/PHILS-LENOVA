@@ -3,26 +3,29 @@ const { REDIS_URL } = require('./env');
 
 const redisClient = redis.createClient({ url: REDIS_URL });
 
-// Redis is optional. Log an unreachable Redis once (the client retries) and
-// stay quiet afterwards so a missing instance does not flood the logs.
-let loggedError = false;
-redisClient.on('error', (err) => {
-  if (loggedError) return;
-  loggedError = true;
-  console.warn('Redis unavailable; caching disabled:', err.message || 'connection failed');
-});
-redisClient.on('connect', () => console.log('Redis Client Connected'));
+// Redis is optional. Cache helpers below gate on the client's own readiness
+// flag (`redisClient.isReady`) so there is a single source of truth, and an
+// unreachable Redis is reported exactly once (the client keeps retrying in the
+// background) instead of flooding the logs.
+let reportedUnavailable = false;
+function reportUnavailable(detail) {
+  if (reportedUnavailable) return;
+  reportedUnavailable = true;
+  console.warn('Redis unavailable; caching disabled:', detail || 'connection failed');
+}
 
-// In tests, we might not have a Redis server running. Let's handle gracefully.
-let isConnected = false;
-redisClient.connect().then(() => {
-  isConnected = true;
-}).catch((err) => {
-  console.warn('Redis connection failed, caching will be bypassed:', err.message);
+redisClient.on('error', (err) => reportUnavailable(err.message));
+redisClient.on('connect', () => {
+  reportedUnavailable = false;
+  console.log('Redis Client Connected');
 });
+
+// Connect eagerly so the cache is ready when the first request arrives. The
+// `error` listener above reports failures, so the rejection is swallowed here.
+redisClient.connect().catch((err) => reportUnavailable(err && err.message));
 
 async function getCache(key) {
-  if (!isConnected) return null;
+  if (!redisClient.isReady) return null;
   try {
     const data = await redisClient.get(key);
     return data ? JSON.parse(data) : null;
@@ -33,7 +36,7 @@ async function getCache(key) {
 }
 
 async function setCache(key, value, expiration = 3600) {
-  if (!isConnected) return;
+  if (!redisClient.isReady) return;
   try {
     await redisClient.setEx(key, expiration, JSON.stringify(value));
   } catch (err) {
@@ -42,7 +45,7 @@ async function setCache(key, value, expiration = 3600) {
 }
 
 async function invalidateCache(pattern) {
-  if (!isConnected) return;
+  if (!redisClient.isReady) return;
   try {
     const keys = await redisClient.keys(pattern);
     if (keys.length > 0) {

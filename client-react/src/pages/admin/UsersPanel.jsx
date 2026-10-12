@@ -225,7 +225,7 @@ export default function UsersPanel() {
                             className="text-red-600 transition hover:text-red-800"
                             onClick={() => setDeleting(user)}
                           >
-                            Delete
+                            Deactivate
                           </button>
                         </div>
                       </td>
@@ -250,8 +250,8 @@ export default function UsersPanel() {
 
       {deleting && (
         <ConfirmDialog
-          title="Delete user"
-          message={`Permanently delete "${deleting.username}" (#${deleting.id})? This cannot be undone and fails if the user has audit history.`}
+          title="Deactivate user"
+          message={`Deactivate "${deleting.username}" (#${deleting.id})? They will no longer be able to sign in. Their records and history are kept, and you can reactivate them by editing the user.`}
           onClose={() => setDeleting(null)}
           onConfirm={async () => {
             await api.deleteUser(deleting.id)

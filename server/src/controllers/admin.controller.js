@@ -271,9 +271,16 @@ async function updateUser(request, response, next) {
 async function deleteUser(request, response, next) {
   try {
     const id = requirePositiveInteger(request.params.id, 'user id');
-    const [result] = await pool.execute("DELETE FROM users WHERE id = ?", [id]);
-    if (!result.affectedRows) return response.status(404).json({ error: 'User not found' });
-    await recordAudit(request.user.sub, 'USER_DELETE', { userId: id });
+    // Users are deactivated, never physically removed: audit_logs and the
+    // allocation tables reference the row without ON DELETE CASCADE, so a hard
+    // DELETE would either fail (ER_ROW_IS_REFERENCED_2 -> 500) or destroy
+    // history. Deactivation is reversible, idempotent, and preserves the trail.
+    const [rows] = await pool.execute('SELECT id, status FROM users WHERE id = ?', [id]);
+    if (!rows.length) return response.status(404).json({ error: 'User not found' });
+    if (rows[0].status !== 'INACTIVE') {
+      await pool.execute("UPDATE users SET status = 'INACTIVE' WHERE id = ?", [id]);
+      await recordAudit(request.user.sub, 'USER_DEACTIVATE', { userId: id });
+    }
     response.status(204).send();
   } catch (error) { next(error); }
 }

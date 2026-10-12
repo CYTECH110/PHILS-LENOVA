@@ -4,7 +4,7 @@ Repeatable checklist for the PHILS LEARNOVA LMS. Run the automated parts first, 
 walk the manual browser checks once per release candidate.
 
 - **Stack:** Node/Express (MySQL) + React 19 / Vite / Tailwind SPA
-- **Entry point:** `server/src/app.js` (serves the API and the built SPA in `client-react/dist`)
+- **Entry point:** `server/src/server.js` (boots the HTTP listener; `server/src/app.js` builds the Express app and serves the API plus the built SPA in `client-react/dist`)
 - **Default port:** from `.env` `PORT` (defaults to 3000)
 - **Automated smoke runner:** `scripts/smoke-check.ps1`
 
@@ -18,8 +18,8 @@ walk the manual browser checks once per release candidate.
 - [ ] `.env` exists (copy from `.env.example`, set `JWT_SECRET`)
 - [ ] `node_modules` present
 
-`npm install` is **optional** — dependencies are already installed in this workspace.
-If you start from a clean clone run:
+`npm install` is only a no-op when this repo was already provisioned with
+`node_modules`. On a clean clone run:
 
 ```powershell
 npm install --no-audit --no-fund
@@ -144,8 +144,9 @@ Open `http://localhost:3000` (or your configured `PORT`) in a browser with DevTo
 - [ ] Metrics tiles populate (`GET /api/admin/dashboard`)
 - [ ] **Courses** table lists courses (`GET /api/admin/courses`)
 - [ ] No-`/api/api` check: Network tab has clean `/api/admin/...` URLs
-- [ ] Note: there is **no "list users" endpoint** — admin only *creates* users
-      (`POST /api/admin/users`); the user list is not exposed. Do not fail the run over this.
+- [ ] **Users** table lists users (`GET /api/admin/users`) with role and status; admin can
+      create, edit (including activate/deactivate), and deactivate users. Deactivate is a
+      soft delete — the row is kept and set to `INACTIVE` so audit history survives.
 
 ### 2.3 Teacher dashboard
 

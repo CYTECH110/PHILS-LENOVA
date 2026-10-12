@@ -4,7 +4,7 @@
     Boots the PHILS LEARNOVA app on an ephemeral port and probes the critical endpoints.
 
 .DESCRIPTION
-    Self-contained smoke check. It starts `server/src/app.js`, waits for /api/health,
+    Self-contained smoke check. It starts `server/src/server.js`, waits for /api/health,
     verifies the public + guarded routes, prints PASS/FAIL per check, then stops the
     server (unless -KeepRunning). Exit code is 0 when every check passes, otherwise 1.
 
@@ -30,8 +30,8 @@ $ErrorActionPreference = 'Stop'
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root = Split-Path -Parent $scriptDir
-if (-not (Test-Path (Join-Path $root 'server\src\app.js'))) {
-    Write-Host "FAIL cannot locate server/src/app.js (looked under $root)" -ForegroundColor Red
+if (-not (Test-Path (Join-Path $root 'server\src\server.js'))) {
+    Write-Host "FAIL cannot locate server/src/server.js (looked under $root)" -ForegroundColor Red
     exit 1
 }
 
@@ -73,7 +73,7 @@ Write-Host "PHILS LEARNOVA smoke check -> $baseUrl" -ForegroundColor Cyan
 $proc = $null
 try {
     $env:PORT = "$Port"
-    $proc = Start-Process -FilePath 'node' -ArgumentList 'server/src/app.js' `
+    $proc = Start-Process -FilePath 'node' -ArgumentList 'server/src/server.js' `
         -WorkingDirectory $root -PassThru `
         -RedirectStandardOutput $stdoutLog -RedirectStandardError $stderrLog
 

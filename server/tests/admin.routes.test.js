@@ -127,8 +127,18 @@ test('users CRUD and validation', async () => {
 
   assert.equal((await api('PUT', '/api/admin/users/999999', { full_name: 'x', role: 'STUDENT' })).status, 404);
   assert.equal((await api('PUT', `/api/admin/users/${created.id}`, { full_name: 'x', role: 'ADMIN' })).status, 400);
-  assert.equal((await api('DELETE', `/api/admin/users/${created.id}`)).status, 204);
-  assert.equal((await api('DELETE', `/api/admin/users/${created.id}`)).status, 404);
+
+  assert.equal((await api('DELETE', '/api/admin/users/999999')).status, 404);
+  const deleteTarget = await api('POST', '/api/admin/users', { username: 'p29.admin.delete', full_name: 'P29 Delete Target', password: 'P29Password123', role: 'STUDENT' });
+  assert.equal(deleteTarget.status, 201);
+  const deleteId = (await deleteTarget.json()).id;
+  ids.users.push(deleteId);
+  assert.equal((await api('DELETE', `/api/admin/users/${deleteId}`)).status, 204);
+  assert.equal((await api('DELETE', `/api/admin/users/${deleteId}`)).status, 204);
+
+  const afterDelete = await request(baseUrl, 'GET', '/api/admin/users?limit=100', { jar: admin.jar });
+  const deactivated = (await afterDelete.json()).users.find((user) => user.id === deleteId);
+  assert.equal(deactivated.status, 'INACTIVE');
 });
 
 test('allocations assign, list, and unassign', async () => {
@@ -154,6 +164,11 @@ test('allocations assign, list, and unassign', async () => {
   assert.ok(allocations.studentClasses.some((row) => row.student_id === studentId && row.class_id === classId));
   assert.ok(allocations.teacherClasses.some((row) => row.teacher_id === teacherId && row.class_id === classId));
   assert.ok(allocations.teacherCourses.some((row) => row.teacher_id === teacherId && row.course_id === courseId));
+
+  // Deleting a user with allocations must not fail on the audit_logs/allocation
+  // foreign keys - it deactivates instead (regression for the FK 500 defect).
+  assert.equal((await api('DELETE', `/api/admin/users/${studentId}`)).status, 204);
+  assert.equal((await api('DELETE', `/api/admin/users/${teacherId}`)).status, 204);
 
   assert.equal((await api('POST', '/api/admin/allocations/students', { student_id: studentId })).status, 400);
 

@@ -764,4 +764,4 @@ npm start (PORT=3055):
 - Smoke scripts (not matched by `npm test`'s `*.test.js` glob) live in `server/tests/smoke/` and boot `app.listen(0)` themselves: `phase-13.verify.js` (27/27, config/env + prod fail-fast), `phase-24.verify.js` (53/53), `phase-25.verify.js` (35/35), `phase-26.verify.js` (21/21), `phase-27.verify.js` (14/14), `phase-28.verify.js` (27/27); the legacy-client scripts moved to `archive/phase28/legacy-client-smoke/`; the route-level `*.test.js` suites (Phase 29) run under `npm test` and boot `app.listen(0)` via `server/tests/helpers.js`
 - Config has one entry point: `server/src/config/env.js` loads `.env` and exposes every value; `app.js`/`database.js` must consume it rather than re-reading `process.env`
 - Empty duplicate configs live in `archive/empty-config-duplicates-2026-10-06/` (see its README)
-- 20-Phase-LMS-Development-Procedure.md is still 0 bytes (placeholder)
+- 20-Phase-LMS-Development-Procedure.md was an empty placeholder and is no longer present

@@ -50,8 +50,9 @@ probe which boots the app, checks health/auth guards, and exits non-zero on fail
 powershell -ExecutionPolicy Bypass -File scripts\smoke-check.ps1
 ```
 
-Server-dependent regression scripts live in `server/tests/smoke/` (they are intentionally
-outside the `npm test` glob because they need a running server on a fixed port).
+Regression scripts live in `server/tests/smoke/` (they are intentionally outside the
+`npm test` glob). Each one self-boots the app on an ephemeral port, so no server needs to be
+running beforehand and no fixed port is required.
 
 CI (`.github/workflows/ci.yml`) runs on pushes and pull requests: a `server` job brings up a
 MySQL 8.0 service, loads `database/schema.sql` + the development seed, then runs `npm run lint`
@@ -109,7 +110,7 @@ Authentication uses JWTs in secure HTTP-only cookies and a CSRF double-submit to
 
 ## Database
 
-Run `database/schema.sql` for a clean database. `database/seeders/001_development_seed.sql` holds the development seed template; generate real bcrypt hashes before using seed data.
+Run `database/schema.sql` for a clean database. `database/seeders/001_development_seed.sql` holds the development seed; it ships a working bcrypt hash so the `admin` / `teacher.demo` / `student.demo` accounts can sign in immediately. Regenerate hashes if you change the demo password.
 
 The schema includes users, courses, classes, student/teacher allocations, quizzes, class-scoped quiz access, question banks, attempts, per-question answers, geofence checks, and audit logs. Foreign keys, unique attempt constraints, and indexes protect integrity.
 
